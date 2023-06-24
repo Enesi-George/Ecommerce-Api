@@ -17,11 +17,11 @@ const userSchema = mongoose.Schema({
     },
     phone: {
         type: String,
-        required: true,
     },
     isAdmin:{
         type: Boolean,
         required: true,
+        default: false
     },
     street:{
         type: String,

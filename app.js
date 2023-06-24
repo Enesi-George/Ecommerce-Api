@@ -6,13 +6,14 @@ const mongoose = require('mongoose'); // the const is used before running the se
 const cors = require('cors'); //this allow backend app ports to relate with frontend ports without forbidden error
 require('dotenv/config');
 const authJwt = require('./helper/jwt');
-const errorHandler = require('./helper/error-handler')
+const errorHandler = require('./helper/error-handler');
 
 
 app.use(cors());
 app.options('*', cors());
 
 //middleware
+// app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(authJwt());

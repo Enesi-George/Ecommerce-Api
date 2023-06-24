@@ -26,14 +26,12 @@ router.get('/:id', async(req, res)=>{
     res.status(200).send(user);
 })
 
-
-router.post('/', async(req, res)=>{
+router.post('/register', async(req, res)=>{
 
     let user = new User({
         name: req.body.name,
         email: req.body.email,
-        color: req.body.color,
-        passwordHash: bcrypt.hashSync(req.body.password, 10),
+        passwordHash: bcrypt.hashSync(req.body.password1, 10),
         phone: req.body.phone,
         isAdmin: req.body.isAdmin,
         street: req.body.street,
@@ -42,36 +40,28 @@ router.post('/', async(req, res)=>{
         city: req.body.city,
         country: req.body.country,
     })
-    user = await user.save();
+    const newUser = await user;
+    const userExist = await User.findOne({email: req.body.email});
 
-    //check if category exist to catch error
-    if(!user){
-        return res.status(404).send('user cannot be created')
-    }           
-    res.status(200).send(user);
-});
 
-router.post('register', async(req, res)=>{
+    if(userExist){
+        return res.status(400).json({
+            message: "User already exists"
+        })
+    }
+    if(newUser){
+        newUser.save()
+        return res.status(201).json({
+            name: newUser.name,
+            email: newUser.email,
+            message: "User Created Successfully"
+        })
+    }else{
+        res.status(400).json({message: 'Invalid user data'})
+    }
 
-    let user = new User({
-        name: req.body.name,
-        email: req.body.email,
-        color: req.body.color,
-        passwordHash: bcrypt.hashSync(req.body.password, 10),
-        phone: req.body.phone,
-        isAdmin: req.body.isAdmin,
-        street: req.body.street,
-        apartment:req.body.apartment,
-        zip: req.body.zip,
-        city: req.body.city,
-        country: req.body.country,
-    })
-    user = await user.save();
 
-    if(!user){
-        return res.status(404).send('user cannot be created')
-    }           
-    res.status(200).send(user);
+    //return res.status(200).send(user);
 });
 
 router.post('/login', async(req, res)=>{
@@ -81,7 +71,8 @@ router.post('/login', async(req, res)=>{
     if(!user){
         return res.status(400).send("user not found")
     }
-
+    
+    //create a token for login authentication period
     if(user && bcrypt.compareSync(req.body.password, user.passwordHash)){
         const token = jwt.sign(
             {
@@ -92,7 +83,14 @@ router.post('/login', async(req, res)=>{
             {expiresIn: '1d'}
         )
 
-        res.status(200).send({message:"success",user: user.email, token: token})
+        res.status(200).send(
+            {
+                message:"login successfully", 
+                email: user.email,
+                name: user.name, 
+                token: token
+            }
+        )
     } else{
         res.status(400).send('password is wrong')
     }
